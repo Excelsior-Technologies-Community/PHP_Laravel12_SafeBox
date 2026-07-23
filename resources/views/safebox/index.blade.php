@@ -26,11 +26,18 @@
             </small>
         </div>
 
-        <div>
+        <div class="d-flex gap-2">
+
+            <a href="{{ route('safebox.export') }}"
+                class="btn btn-success">
+                📥 Export CSV
+            </a>
+
             <a href="{{ route('safebox.trash') }}"
                 class="btn btn-dark">
                 🗑 Trash
             </a>
+
         </div>
 
     </div>
@@ -180,17 +187,14 @@
 
                     </div>
 
-                    <div class="col-md-2 d-grid">
+                    <div class="col-md-2 mb-3">
 
-                        <label class="form-label">
-                            &nbsp;
+                        <label class="form-label invisible">
+                            Save
                         </label>
 
-                        <button
-                            class="btn btn-success">
-
+                        <button type="submit" class="btn btn-success w-100">
                             Save
-
                         </button>
 
                     </div>
@@ -327,7 +331,38 @@
 
                         <td>
 
-                            {{ Crypt::decryptString($item->secret) }}
+                            <div class="d-flex align-items-center gap-2">
+
+                                <span
+                                    id="secret-{{ $item->id }}"
+                                    class="secret-text"
+                                    data-secret="{{ Crypt::decryptString($item->secret) }}">
+                                    ************
+                                </span>
+
+                                {{-- Show / Hide --}}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary toggle-secret"
+                                    data-id="{{ $item->id }}"
+                                    title="Show / Hide Secret">
+
+                                    👁
+
+                                </button>
+
+                                {{-- Copy --}}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary copy-secret"
+                                    data-secret="{{ Crypt::decryptString($item->secret) }}"
+                                    title="Copy Secret">
+
+                                    📋
+
+                                </button>
+
+                            </div>
 
                         </td>
 
@@ -445,5 +480,102 @@
     </div>
 
 </div>
+
+<!-- Copy Success Toast -->
+<div class="position-fixed bottom-0 end-0 p-3"
+    style="z-index:1080">
+
+    <div
+        id="copyToast"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert">
+
+        <div class="d-flex">
+
+            <div class="toast-body" id="copyToastBody">
+
+                📋 Secret copied successfully!
+
+            </div>
+            <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                data-bs-dismiss="toast">
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Show / Hide Secret
+        document.querySelectorAll('.toggle-secret').forEach(function(button) {
+
+            button.addEventListener('click', function() {
+
+                let id = this.dataset.id;
+
+                let secret = document.getElementById('secret-' + id);
+
+                if (secret.innerText === '************') {
+
+                    secret.innerText = secret.dataset.secret;
+
+                    this.innerHTML = '🙈';
+
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-outline-danger');
+
+                } else {
+
+                    secret.innerText = '************';
+
+                    this.innerHTML = '👁';
+
+                    this.classList.remove('btn-outline-danger');
+                    this.classList.add('btn-outline-secondary');
+
+                }
+
+            });
+
+        });
+
+        // Copy Secret
+        document.querySelectorAll('.copy-secret').forEach(function(button) {
+
+            button.addEventListener('click', function() {
+
+                navigator.clipboard.writeText(this.dataset.secret)
+                    .then(() => {
+
+                        // Update toast message
+                        document.getElementById('copyToastBody').innerHTML =
+                            '📋 Secret copied successfully!';
+
+                        // Show toast
+                        const toastElement = document.getElementById('copyToast');
+
+                        const toast = bootstrap.Toast.getOrCreateInstance(toastElement);
+
+                        toast.show();
+
+                    })
+                    .catch(() => {
+
+                        alert('Failed to copy secret.');
+
+                    });
+
+            });
+
+        });
+
+    });
+</script>
 
 @endsection
