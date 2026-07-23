@@ -2,53 +2,448 @@
 
 @section('content')
 
-<h3 class="mb-3">🔐 My SafeBox</h3>
+<div class="container-fluid">
 
-<!-- Add SafeBox Form -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="POST" action="/safebox">
-            @csrf
+    {{-- Success Message --}}
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show">
+        {{ session('success') }}
 
-            <div class="mb-3">
-                <label>Title</label>
-                <input type="text" name="title" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-                <label>Secret</label>
-                <input type="text" name="secret" class="form-control" required>
-            </div>
-
-            <button class="btn btn-primary">Save to SafeBox</button>
-        </form>
+        <button class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-</div>
+    @endif
 
-<!-- SafeBox List -->
-<div class="card">
-    <div class="card-header">
-        Stored Secrets
+    {{-- Heading --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold">
+                🔐 SafeBox Dashboard
+            </h2>
+
+            <small class="text-muted">
+                Store and manage your encrypted secrets.
+            </small>
+        </div>
+
+        <div>
+            <a href="{{ route('safebox.trash') }}"
+                class="btn btn-dark">
+                🗑 Trash
+            </a>
+        </div>
+
     </div>
 
-    <div class="card-body">
-        @forelse($data as $item)
-            <div class="border p-2 mb-2 d-flex justify-content-between align-items-center">
-                <div>
-                    <b>{{ $item->title }}</b><br>
-                    <small>{{ Crypt::decryptString($item->secret) }}</small>
+    {{-- Statistics --}}
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 bg-primary text-white">
+
+                <div class="card-body">
+
+                    <h6>Total Secrets</h6>
+
+                    <h2>{{ $stats['total'] }}</h2>
+
                 </div>
 
-                <form method="POST" action="/safebox/{{ $item->id }}">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-danger">Delete</button>
-                </form>
             </div>
-        @empty
-            <p>No data saved.</p>
-        @endforelse
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 bg-success text-white">
+
+                <div class="card-body">
+
+                    <h6>Active</h6>
+
+                    <h2>{{ $stats['active'] }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 bg-warning text-dark">
+
+                <div class="card-body">
+
+                    <h6>Locked</h6>
+
+                    <h2>{{ $stats['locked'] }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 bg-secondary text-white">
+
+                <div class="card-body">
+
+                    <h6>Archived</h6>
+
+                    <h2>{{ $stats['archived'] }}</h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
+
+
+
+    {{-- Add SafeBox --}}
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+                ➕ Add New Secret
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="POST"
+                action="{{ route('safebox.store') }}">
+
+                @csrf
+
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label">
+                            Title
+                        </label>
+
+                        <input
+                            type="text"
+                            name="title"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label">
+                            Secret
+                        </label>
+
+                        <input
+                            type="text"
+                            name="secret"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+
+                        <label class="form-label">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select">
+
+                            <option value="Active">
+                                Active
+                            </option>
+
+                            <option value="Locked">
+                                Locked
+                            </option>
+
+                            <option value="Archived">
+                                Archived
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <label class="form-label">
+                            &nbsp;
+                        </label>
+
+                        <button
+                            class="btn btn-success">
+
+                            Save
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    {{-- Search & Filter --}}
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="GET"
+                action="{{ route('safebox.index') }}">
+
+                <div class="row">
+
+                    <div class="col-md-5">
+
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Search title or status..."
+                            value="{{ request('search') }}">
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <select
+                            name="status"
+                            class="form-select">
+
+                            <option value="">
+                                All Status
+                            </option>
+
+                            <option value="Active"
+                                {{ request('status')=='Active' ? 'selected':'' }}>
+                                Active
+                            </option>
+
+                            <option value="Locked"
+                                {{ request('status')=='Locked' ? 'selected':'' }}>
+                                Locked
+                            </option>
+
+                            <option value="Archived"
+                                {{ request('status')=='Archived' ? 'selected':'' }}>
+                                Archived
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <button class="btn btn-primary">
+                            Search
+                        </button>
+
+                        <a href="{{ route('safebox.index') }}"
+                            class="btn btn-secondary">
+                            Reset
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    {{-- Data Table --}}
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+
+                📋 Stored Secrets
+
+            </h5>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle mb-0">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Title</th>
+
+                        <th>Secret</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @forelse($data as $item)
+
+                    <tr>
+
+                        <td>
+                            {{ $loop->iteration + ($data->firstItem() - 1) }}
+                        </td>
+
+                        <td>
+
+                            {{ $item->title }}
+
+                        </td>
+
+                        <td>
+
+                            {{ Crypt::decryptString($item->secret) }}
+
+                        </td>
+
+                        <td>
+
+                            @if($item->status=='Active')
+
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+
+                            @elseif($item->status=='Locked')
+
+                            <span class="badge bg-warning text-dark">
+                                Locked
+                            </span>
+
+                            @else
+
+                            <span class="badge bg-secondary">
+                                Archived
+                            </span>
+
+                            @endif
+
+                        </td>
+
+                        <td>
+
+                            <form
+                                method="POST"
+                                action="{{ route('safebox.destroy',$item->id) }}"
+                                onsubmit="return confirm('Delete this secret?')">
+
+                                @csrf
+                                @method('DELETE')
+
+                                <button
+                                    class="btn btn-danger btn-sm">
+
+                                    Delete
+
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    @empty
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="text-center text-muted">
+
+                            No SafeBox records found.
+
+                        </td>
+
+                    </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="card-footer">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <small>
+
+                    Showing
+                    {{ $data->firstItem() ?? 0 }}
+                    to
+                    {{ $data->lastItem() ?? 0 }}
+                    of
+                    {{ $data->total() }}
+                    records
+
+                </small>
+
+                <div class="card-footer">
+
+                    <nav>
+                        <ul class="pagination justify-content-center mb-0">
+
+                            @for ($i = 1; $i <= $data->lastPage(); $i++)
+
+                                <li class="page-item {{ $data->currentPage() == $i ? 'active' : '' }}">
+
+                                    <a class="page-link"
+                                        href="{{ $data->url($i) }}">
+                                        {{ $i }}
+                                    </a>
+
+                                </li>
+
+                                @endfor
+
+                        </ul>
+                    </nav>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 @endsection
