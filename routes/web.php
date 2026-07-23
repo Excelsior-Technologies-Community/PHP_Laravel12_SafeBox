@@ -27,6 +27,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/safebox/{id}', [SafeBoxController::class, 'destroy'])
         ->name('safebox.destroy');
 
+    Route::get('/safebox-export', [SafeBoxController::class, 'export'])
+        ->name('safebox.export');
+
     // Trash
     Route::get('/safebox-trash', [SafeBoxController::class, 'trash'])
         ->name('safebox.trash');
