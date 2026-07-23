@@ -3,10 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-// app/Models/SafeBox.php
 class SafeBox extends Model
 {
-    protected $fillable = ['user_id', 'title', 'secret'];
-}
+    use SoftDeletes;
 
+    protected $fillable = [
+        'user_id',
+        'title',
+        'secret',
+        'status'
+    ];
+}

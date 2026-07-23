@@ -18,9 +18,24 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // SafeBox
     Route::get('/safebox', [SafeBoxController::class, 'index'])->name('safebox.index');
-    Route::post('/safebox', [SafeBoxController::class, 'store']);
-    Route::delete('/safebox/{id}', [SafeBoxController::class, 'destroy']);
+
+    Route::post('/safebox', [SafeBoxController::class, 'store'])
+        ->name('safebox.store');
+
+    Route::delete('/safebox/{id}', [SafeBoxController::class, 'destroy'])
+        ->name('safebox.destroy');
+
+    // Trash
+    Route::get('/safebox-trash', [SafeBoxController::class, 'trash'])
+        ->name('safebox.trash');
+
+    Route::put('/safebox/{id}/restore', [SafeBoxController::class, 'restore'])
+        ->name('safebox.restore');
+
+    Route::delete('/safebox/{id}/force-delete', [SafeBoxController::class, 'forceDelete'])
+        ->name('safebox.forceDelete');
 });
 
 require __DIR__ . '/auth.php';
