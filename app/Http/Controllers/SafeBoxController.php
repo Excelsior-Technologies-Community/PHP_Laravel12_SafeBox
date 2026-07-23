@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SafeBox;
 use Illuminate\Support\Facades\Crypt;
+use App\Exports\SafeBoxExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SafeBoxController extends Controller
 {
@@ -153,5 +155,16 @@ class SafeBoxController extends Controller
         return redirect()
             ->route('safebox.trash')
             ->with('success', 'Secret permanently deleted.');
+    }
+
+    /**
+     * Export SafeBox records to CSV
+     */
+    public function export()
+    {
+        return Excel::download(
+            new SafeBoxExport,
+            'safebox-records-' . now()->format('Y-m-d_H-i-s') . '.csv'
+        );
     }
 }
