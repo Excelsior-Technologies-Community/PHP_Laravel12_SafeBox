@@ -19,10 +19,12 @@ class SafeBoxExport implements FromCollection, WithHeadings
             ->get()
             ->map(function ($item) {
                 return [
-                    'Title'      => $item->title,
-                    'Secret'     => Crypt::decryptString($item->secret),
-                    'Status'     => $item->status,
-                    'Created At' => $item->created_at->format('d-m-Y h:i A'),
+                    'Title'       => $item->title,
+                    'Category'    => $item->category ?? 'Note',
+                    'Secret'      => $item->decrypted_secret,
+                    'Status'      => $item->status,
+                    'Expires At'  => $item->expires_at ? $item->expires_at->format('d-m-Y') : 'Never',
+                    'Created At'  => $item->created_at->format('d-m-Y h:i A'),
                 ];
             });
     }
@@ -34,8 +36,10 @@ class SafeBoxExport implements FromCollection, WithHeadings
     {
         return [
             'Title',
+            'Category',
             'Secret',
             'Status',
+            'Expires At',
             'Created At',
         ];
     }
